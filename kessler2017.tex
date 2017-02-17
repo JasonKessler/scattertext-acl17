@@ -1,20 +1,3 @@
-%
-% File acl2015.tex
-%
-% Contact: car@ir.hit.edu.cn, gdzhou@suda.edu.cn
-%%
-%% Based on the style files for ACL-2014, which were, in turn,
-%% Based on the style files for ACL-2013, which were, in turn,
-%% Based on the style files for ACL-2012, which were, in turn,
-%% based on the style files for ACL-2011, which were, in turn, 
-%% based on the style files for ACL-2010, which were, in turn, 
-%% based on the style files for ACL-IJCNLP-2009, which were, in turn,
-%% based on the style files for EACL-2009 and IJCNLP-2008...
-
-%% Based on the style files for EACL 2006 by 
-%%e.agirre@ehu.es or Sergi.Balari@uab.es
-%% and that of ACL 08 by Joakim Nivre and Noah Smith
-
 \documentclass[11pt]{article}
 \usepackage{acl2015}
 \usepackage{times}
@@ -29,74 +12,86 @@
 % in the camera-ready version and ask you to change it back.
 
 
-\title{Instructions for ACL-2015 Proceedings}
+\title{Scattertext: a Browser-Based Tool for Visualizing how Corpora Differ}
 
-\author{First Author \\
-  Affiliation / Address line 1 \\
-  Affiliation / Address line 2 \\
-  Affiliation / Address line 3 \\
-  {\tt email@domain} \\\And
-  Second Author \\
-  Affiliation / Address line 1 \\
-  Affiliation / Address line 2 \\
-  Affiliation / Address line 3 \\
-  {\tt email@domain} \\}
+\author{Jason Kessler \\
+  CDK Global \\
+  605 5th Ave S \#800 \\
+  Seattle, WA 98104 \\
+  {\tt jason.kessler@gmail.com}  \\}
 
 \date{}
 
 \begin{document}
 \maketitle
 \begin{abstract}
-  This document contains the instructions for preparing a camera-ready
-  manuscript for the proceedings of ACL-2015. The document itself
-  conforms to its own specifications, and is therefore an example of
-  what your manuscript should look like. These instructions should be
-  used for both papers submitted for review and for final versions of
-  accepted papers.  Authors are asked to conform to all the directions
-  reported in this document.
+  To do
 \end{abstract}
-
-\section{Credits}
-
-This document has been adapted from the instructions for earlier ACL
-proceedings, including those for ACL-2012 by Maggie Li and Michael
-White, those from ACL-2010 by Jing-Shing Chang and Philipp Koehn,
-those for ACL-2008 by Johanna D. Moore, Simone Teufel, James Allan,
-and Sadaoki Furui, those for ACL-2005 by Hwee Tou Ng and Kemal
-Oflazer, those for ACL-2002 by Eugene Charniak and Dekang Lin, and
-earlier ACL and EACL formats. Those versions were written by several
-people, including John Chen, Henry S. Thompson and Donald
-Walker. Additional elements were taken from the formatting
-instructions of the {\em International Joint Conference on Artificial
-  Intelligence}.
 
 \section{Introduction}
 
-The following instructions are directed to authors of papers submitted
-to ACL-2015 or accepted for publication in its proceedings. All
-authors are required to adhere to these specifications. Authors are
-required to provide a Portable Document Format (PDF) version of their
-papers. \textbf{The proceedings are designed for printing on A4
-paper.}
+The word \textit{term} is used in this paper to refer to word and n-grams.
 
-We will make more detailed instructions available at
-\url{http://acl2015.org/publication.html}. Please check this website 
-regularly.
+\section{Related work}
+Visualizing class-specific terms.
 
+(1) word clouds (cite ungar) pros and cons
 
-\section{General Instructions}
+(2) bubbles (cite bostock (nytimes)) y-axis, limited space, interactive
 
-Manuscripts must be in two-column format.  Exceptions to the
-two-column format include the title, authors' names and complete
-addresses, which must be centered at the top of the first page, and
-any full-width figures or tables (see the guidelines in
-Subsection~\ref{ssec:first}). {\bf Type single-spaced.}  Start all
-pages directly under the top margin. See the guidelines later
-regarding formatting the first page.  The manuscript should be
-printed single-sided and its length
-should not exceed the maximum page limit described in Section~\ref{sec:length}.
-Do not number the pages.
+(3) log-odds with prior (monroe).  disadvantage: includes a lot of empty space.  Only the about the top 10 terms can be labeled.
 
+(4) scatter plots (rudder, tidytext).  Mention that important points tend to occur in the upper left and lower-right hand corners, and the hull.  
+
+\subsection{Problems with existing scatter plots}
+
+Words stack atop each other.
+
+Labeling points in dense scatter-plots is difficult.  Labels that occur in the 
+ggplot2 plots used in tidytext (add citation) often overlap other points, rendering interior labels unreadable. More associated terms 
+
+Traditionally, points are randomly jittered.  Adding jitter has two disadvantages: 
+
+(1) Some points will randomly appear closer to an upper-left or lower-right-hand corner than others, potentially even those which are more associated with a class, or closer to an axis.  One could address this by coloring points based on their association, but a mix of point colors (show figure) appear can appear disorienting and unaesthetic. 
+
+(2) Jitter makes the point cloud more dense, allowing less space for point labels in the interior of the cloud.  
+
+\section{Scattertext}
+
+Term labeling that prioritizes weights. (cite cozy), solves overlapping text and point problem.  When sparse term weights are shown, color zero-points in dark gray, optionally place labels over them.  
+
+interactive-- click to see contexts.  Mousing over points give statistics, and mousing over labels indicates placement of points.  Sidebars of associated and characteristic terms can be moused-over to see placement of term on scatter chart.
+
+Mention size limits, and manual tuning.  
+
+Cross lingual (e.g., chinese, cite segmenter)
+
+PMI for phrase recognition.
+
+Uses spacy. (cite)
+
+Terms are given category-association scores based on their distance to the upper-left (category \textit{A}) or lower-right (category \textit{B}) corner.
+
+\begin{equation}
+  \mbox{insert rudder score here}
+  \label{eqn:cornerscore}
+\end{equation}
+
+Points are colored based on their based on their highest category-association score.  Points closest to the upper-left-hand corer are colored in progressively darker shades of blue, whiles those closest to the lower-right hand corder in progressively darker shades of red.  To prevent points approximately equidistant from both corners from turning white and blending into the background, they progressively turn yellow.  The colors are provided by D3's ``RdYlBu'' diverging-color scheme. \cite{d3}
+
+Talk about relationship to log-odds.  Points on axes represent infinite log-odds. 
+
+\section{Class-Specific Semantic Similarity via Representations}
+
+Suppose you would like to see how see how presidential candidates used language relating to a word like ``job'', ``healthcare'', or ``military'' in presidential debates.  
+
+Using spaCy-provided GloVe word vectors trained on the Common Crawl corpus (cite glove, spacy), the cosine distance between the target word and each term is computed.  Points on the chart were colored by their similarity to the the target word, but still positioned on the chart based on their category-specific mention-frequency.
+
+In the previous example, identifying the top category-associated terms to display was straight-forward--rank terms based on their euclidean distance to a corner (Equation \ref{eqn:cornerscore}).  This scenario adds the constraint that high scoring terms should be semantically similar to the target term. 
+
+Since the scores are not only on separate scales $[0,1]$ for cosine distance and $[0, \sqrt{2}]$ for euclidean but also differently distributed, the mean of both scores may end up being biased toward one.  To resolve these scaling and distributional differences, both scores transformed using the non-parametric percentile rank transform.  The harmonic mean of these scores are taken.  
+
+This is used 
 
 \subsection{Electronically-available resources}
 
