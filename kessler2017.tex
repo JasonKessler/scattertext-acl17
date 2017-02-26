@@ -6,7 +6,20 @@
 \usepackage{latexsym}
 \usepackage{graphicx}
 \usepackage{hyperref}
-\usepackage[font={small}]{caption}
+\usepackage{enumitem}
+\usepackage{sidecap}
+\sidecaptionvpos{figure}{c}
+\setenumerate{label=(\roman*),itemsep=1pt,topsep=1pt}
+\usepackage{lipsum}
+
+% ADD THE FOLLOWING COUPLE LINES INTO YOUR PREAMBLE
+\let\OLDthebibliography\thebibliography
+\renewcommand\thebibliography[1]{
+  \OLDthebibliography{#1}
+  \setlength{\parskip}{0pt}
+  \setlength{\itemsep}{0pt plus 0.3ex}
+}
+\usepackage[font=scriptsize,labelfont=bf]{caption}
 
 %\setlength\titlebox{5cm}
 
@@ -31,61 +44,90 @@
 \end{abstract}
 
 \section{Introduction}
-Finding words and phrases that discriminate categories of text is a common application of statistical NLP. For example, finding words that are most strongly characteristic of a political party in congressional speeches can help political scientist identify means of partisan framing \cite{monroe08,grimmer2010}, identifying differences in word usage between male and female characters in films can highlight narrative archetypes. \cite{schofield2016gender}, and language use in social media can inform personality types \cite{Schwartz13}.  Beyond these applications in social science, the identification of characteristic terms is also useful in 
+Finding words and phrases that discriminate categories of text is a common application of statistical NLP. For example, finding words that are most strongly characteristic of a political party in congressional speeches can help political scientist identify means of partisan framing \cite{monroe08,grimmer2010}, identifying differences in word usage between male and female characters in films can highlight narrative archetypes. \cite{schofield2016gender}, language use in social media can inform personality types \cite{Schwartz13}, and in understanding how customers evaluate restaurants \cite{jurafsky2014}.
 
-While these studies all identify and rank category-discriminating words, a broad range of visualization techniques are used.  These include ranked lists of words, word clouds, word bubbles, and scatter clouds of words.  In Section \ref{related}, I will examine the objectives, strengths and weaknesses of these visualization techniques.
+While these studies all identify and rank category-discriminating words, a broad range of visualization techniques are used.  These include ranked lists of words, word clouds, word bubbles, and scatter clouds of words. 
 
-The interactive visualization package Scattertext\footnote{\href{http://www.github.com/JasonKessler/scattertext}{github.com/JasonKessler/scattertext}} will be introduced in Section \ref{scattertext}, its features motivated by the critiques in Section \ref{related}.  Special attention is paid to visualizing the output of sparse log-linear classifiers (e.g., l1-penalized logistic regression or ElasticNet).  
+Along these lines, this paper introduces a new interactive tool for discriminative language visualization.  Scattertext is based around a scatter-plot, in which each unigram or bigram used in either category is represented by a point. The coordinates of a point indicate how frequently the word in used in each category.  Figure \ref{scattertextmain} shows an example of a Scattertext plot comparing Republican and Democratic political speeches.  The higher up a point is on the y-axis, the more it was used by Democrats, and similarly the further right on the x-axis a point appears, the more its corresponding word was used by Republicans.  Highly associated terms fall closer to the upper-left and lower-right-hand corners of the chart, while stop words fall in the far upper right-hand corner.  Words occurring are typically omitted, but would fall closer to the lower-left-hand corner.  Using a mid 2014 15'' Macbook Pro, about 5,000 points can be displayed using this technique.
 
-A related visualization task is identifying discriminating words that are semantically similar to a query.  For example, generating a visualizing that shows how members of opposing political parties use words that are similar to ``jobs'' or ``medicine'' differently. Scattertext's approach to this task--based in vector representations--is described in Section \ref{embeddings}.  
+When used interactively, mousing-over a point shows the user statistics about a term's relative use in the two contrasting categories, and clicking on a term shows excerpts from convention speeches used.  
+
+The point placement, intelligent word-labeling, and auxiliary term-lists ensure a low-whitespace, readable, and uniformly interpretable plot.  These are issues which have plagued other scatter-plot visualizations showing discriminative language.
+
+In Section \ref{related}, I will examine the objectives, strengths and weaknesses various visualization techniques to identify discriminative words in categorized text.
+
+\begin{figure*}[h!!]
+  \includegraphics[width=\linewidth]{primary_scattertext}
+  \caption{Scattertext visualization of unigrams and bigrams used in the 2012 Political Conventions. 2,197 points are colored red or blue based on the association of their corresponding terms with Democrats or Republicans.  The most associated terms are listed under ``Top Democrat'' and ``Top Republican'' headings, while the unigrams that distinguish all the speeches from typical English are listed to the far right.}
+\label{scattertextmain}
+\vspace{-0.5cm}
+\end{figure*}
+
+The technical details behind Scattertext\footnote{\href{http://www.github.com/JasonKessler/scattertext}{github.com/JasonKessler/scattertext}} will be discussed in Section \ref{scattertext}.
+
+A related visualization task is identifying discriminating words that are semantically similar to a query.  For example, generating a visualizing that shows how members of opposing political parties use words that are similar to ``jobs'' or ``medicine'' differently. Scattertext's approach to this task--based in vector representations--is described in Section \ref{embeddings}.
 
 \section{Text Visualizations}
 \label{related}
 The simplest visualization, a list of words ranked by their scores is easy to produce, interpret and is thus ubiquitous.  There are numerous ways of producing word scores for ranking which are throughly covered in previous work.  The reader is directed to Monroe et al. \shortcite{monroe08} for an overview of model-based term scoring algorithms.  Also of interest, Bitvai and Cohn \shortcite{Bitvai15} present a method for finding sparse words and phrase scores from a trained ANN (with bag-of-words features) and its training data. 
 
-Regardless of how complex the calculation word scores capture a number of different measures of word-association, which can be interesting when viewed independently, instead of as part of a unitary score.  These include: 
+Regardless of how complex the calculation word scores capture a number of different measures of word-association, which can be interesting when viewed independently, instead of as part of a unitary score.  These loosely defined measures include:  \vspace{-0.1in}
 
-\begin{itemize}  
-\item \textbf{Precision}. A word's discriminative power regardless of its frequency, or $P(\mbox{class}|\mbox{word}).$  A term that appears once in the categorized corpus will have perfect precision.
-\item \textbf{Recall}. The frequency a word appears in a particular class, or $P(\mbox{word}|\mbox{class})$.  The variance of precision tends to decrease as recall increases.  Extremely high recall words tend to be stop-words. 
-\item \textbf{Non-redundancy}. The level of a word's discriminative power given other words that co-occur with it.  If a word $w_a$ always co-occurs with $w_b$ and word $w_b$ has a higher precision and recall, $w_a$ would have a high level of redundancy. Measuring redundancy is non-trivial, and has traditionally been approached through l1, l2, or ElasticNet penalized logistic regression \cite{joshi2010}, as well as through other feature selection techniques.  
-\item \textbf{Characteristicness}. How frequently the term appears in the corpus being studied relative to larger background corpus.  For example, if the categories of documents being compared are Tweets about two baseball teams and the background corpus is a sample of all of Twitter, than words like ``playoff'' or ``\#baseball'' would be characteristic of the general corpus, since they discriminate the corpus in general but not necessarily one category \cite{vennclouds}.
-\end{itemize}
+\begin{description}[style=unboxed,leftmargin=0cm]
+\item[Precision] A word's discriminative power regardless of its frequency.  A term that appears once in the categorized corpus will have perfect precision. This (and subsequent metrics) presuppose a balanced class distribution.  Words close to the x and y-axis in Scattertext have high precision.  \vspace{-0.1in}
+\item[Recall] The frequency a word appears in a particular class, or $P(\mbox{word}|\mbox{class})$.  The variance of precision tends to decrease as recall increases.  Extremely high recall words tend to be stop-words.  High recall words occur close to the top and left sides of Scattertext plots.  \vspace{-0.1in}
+\item[Non-redundancy] The level of a word's discriminative power given other words that co-occur with it.  If a word $w_a$ always co-occurs with $w_b$ and word $w_b$ has a higher precision and recall, $w_a$ would have a high level of redundancy. Measuring redundancy is non-trivial, and has traditionally been approached through l1, l2, or ElasticNet penalized logistic regression \cite{joshi2010}, as well as through other feature selection techniques.  In configurations of Scattertext such as the one shown in Figure \ref{scattertextsparse}, terms can be colored based on their regression coefficients that indicate non-redundancy.  \vspace{-0.1in}
 
-Complex text visualizations (i.e., not word lists) manipulate the position and appearance of words or points representing them to indicate their relative scores in these measures. For example, in Schwartz et al. \shortcite{Schwartz13}, two word clouds are given, one per each category of text being compared.  Words are sized by their linear regression coefficients (a composite metric of precision, recall and redundancy) and colored based on how frequently words occurred-- a metric closely associated with recall.  Words selected to include in clouds have minimum frequency threshold, 
+\item[Characteristicness] How frequently the term appears in the corpus being studied relative to larger background corpus.  For example, if the categories of documents being compared are Tweets about two baseball teams and the background corpus is a sample of all of Twitter, than words like ``playoff'' or ``\#baseball'' would be characteristic of the general corpus, since they discriminate the corpus in general but not necessarily one category \cite{vennclouds}.  Characteristic terms are listed on the far right-hand of Scattertext. \vspace{-0.1in}
+\end{description}
 
-(2) bubbles (cite bostock (nytimes)) y-axis, limited space, interactive
+\subsection{Past Work and Design Motivation}
 
-(3) log-odds with prior \cite{monroe08}.  disadvantage: includes a lot of empty space.  Only the about the top 10 terms can be labeled.
+Complex text visualizations (i.e., not word lists) manipulate the position and appearance of words or points representing them to indicate their relative scores in these measures. For example, in Schwartz et al. \shortcite{Schwartz13}, two word clouds are given, one per each category of text being compared.  Words (which, in the study, includes 1 and selected 2 and 3-grams) are sized by their linear regression coefficients (a composite metric of precision, recall and redundancy) and colored based on how frequently words occurred.  Words selected to include in clouds had to have been used in at least 1\% of documents, and whose scores have a Bonferroni-corrected p-value of $<$0.001. Given that these words are highly correlated to their class of interest, the frequency of use is likely a good proxy for recall.
 
-(4) scatter plots (rudder, tidytext).  Mention that important points tend to occur in the upper left and lower-right hand corners, and the hull.  
+Since Shwartz et al. \shortcite{Schwartz13} create tag clouds to compare social media posts of people with one characteristic (e.g., gender or age-range) to all study participants,  characteristicness is not an interesting measure.  Coppersmith and Kelly \shortcite{vennclouds} also describe a word-cloud based visualization for discriminating terms, but intend it for categories which are both small subsets of a much larger corpus. They include a third, middle cloud for terms that appear Characteristic.  The metrics used in this work require a high amount of manual tuning, which is in contrast to the other work discussed here.
 
-\subsection{Problems with existing scatter plots}
+Word clouds can be difficult to interpret.  It is difficult to compare the sizes of two non-horizontally adjacent words,  as well as the relative color intensities of any two words. By virtue of being larger, longer words can unintentionally appear more important.  Sizing of words can be a source of confusion when used to represent precision, since a larger word may naturally be seen as more frequent.  For these reasons, the choice was made to eschew a word-cloud like visualization.
 
-Many authors have followed \cite{monroe08} 
+Bostock et al. \shortcite{Bostock2012}\footnote{\href{http://www.nytimes.com/interactive/2012/09/06/us/politics/convention-word-counts.html}{nytimes.com/interactive/2012/09/06/us/politics/convention-word-counts.html}} employed an interesting, interactive word-bubble visualization for exploring different word usage among Republicans and Democrats in the 2012 American Political Conventions.  A bubble represents each term, and its size increases with its frequency of use.  It's precision is represented by it's coloring-- each bubble is colored blue and red, with the blue portion proportionally colored to a term's.  Terms were manually chosen, and arranged along the x-axis based on their discriminative power. When clicked, sentences from speeches containing the word used are listed below the visualization.  This bubble approach to word clouds inspired Nelson et al. \shortcite{Nelson2015}.
 
-Words stack atop each other, as seen in (previous fig).  This generally renders all but the most prominent words unreadable. Past solutions to this problem have been externally labeling points \cite{schofield2016gender} and 
+The dataset used in Bostock et al. \shortcite{Bostock2012}, consisting of 123 speeches by Democrats (76,864 words) and 66 by Republicans (58,138 words), is used to demonstrate the capabilities of Scattertext.  
+
+\subsection{Scatter-plot visualizations}
 
 \begin{figure}[h]
-\includegraphics[width=\columnwidth]{monroehalf}
-\includegraphics[width=\columnwidth]{Schofield}
+\includegraphics[width=\columnwidth]{monroefull}
 \includegraphics[width=\columnwidth]{tidytext}
-\vspace{-1cm}
-\caption{Label-overlap solutions are problematic: Schofield and Mehr's (2016) labeling points to the left of the scatter cloud makes relating words and points nearly impossible (top). Tidytext's (Silge and Robinson, 2016) approach involves labeling jittered points using non-overlapping text labels.  Despite the semi-transparency of the points, both labels and points in the interior of the chart are unreadable (bottom).
-} 
+\vspace{-0.8cm}
+\caption{A sample of existing scatter-plot visualizations. Monroe (2008) is at the top. Tidytext (Silge and Robinson, 2016) is below.} 
 % Flawed solutions to the label-overlap problem: labeling points to the left of the graph \cite{schofield2016gender} (top) and non-overlapping labels of jittered points \cite{tidytext}.
 \vspace{-0.5cm}
+\label{scatters}
 \end{figure}
 
-\cite{tidytext}
-Labeling points in dense scatter-plots is difficult.  Labels that occur in the 
-ggplot2 plots used in tidytext (add citation) often overlap other points, rendering interior labels unreadable. 
+Monroe et al. \shortcite{monroe08} present a visualization to illustrate the use of their proposed word score, log-odds-ratio with an informative Dirichlet prior (top of Figure \ref{scatters})  This visualization plots word-representing points along two axes.  The x-axis is log$_{10}$ recall, while the y-axis is the difference in their z-scores of their word scores.  Points with a z-score difference below 1.96 are grayed-out, while the top and bottom 20 are labeled, both by each point and on the right-hand side.  The side-labeling is necessary because labels are permitted to overlap, hindering their on-plot readability.  The sizes of points and labels are increased  proportional to the word score. This word score encompasses precision, recall, and characteristicness, since it penalizes scores of terms used more frequently in the background corpus. 
 
-Traditionally, points are randomly jittered.  Adding jitter has two disadvantages: 
+Monroe et al. \shortcite{monroe08} used this family of plot to illustrate the different profiles of various scoring techniques introduced in the paper, but the small number of points which are possible to label limit its utility for in-depth corpus analysis.  
 
-(1) Some points will randomly appear closer to an upper-left or lower-right-hand corner than others, potentially even those which are more associated with a class, or closer to an axis.  One could address this by coloring points based on their association, but a mix of point colors (show figure) appear can appear disorienting and unaesthetic. 
+Schofield and Mehr \shortcite{schofield2016gender} use essentially the same visualization, but plot over 100 corresponding n-grams next to an unlabeled frequency/z-score plot.  While this is appropriate for publication, displaying associated terms and the shape of the score distribution, it is impossible to align all but the highest scoring points to their labels. 
 
-(2) Jitter makes the point cloud more dense, allowing less space for point labels in the interior of the cloud.  
+The tidytext R-package \cite{tidytext} documentation includes a non-interactive ggplot2-based \cite{ggplot2} scatter plot that is very similar to Scattertext.   The x and y-axes both, like in Scattertext, correspond to word frequencies in the two contrasting categories, with jitter added.   In the example in Figure \ref{scatters} (bottom), the contrasting categories are tweets from two different accounts.  The red diagonal line separates words with a based on their odds-ratio.  Note that much more of the chart is used by Monroe et al., 
+
+Despite that the labels in tidytext do not overlap each other (in contrast to Monroe et al.) they do overlap points.  The points' semi-transparency makes labels in less-dense areas legible, the dense interior of the chart is nearly illegible.  Moreover, this can 
+
+Figure \ref{nojitterfig} shows what such a plot may look like if no jitter were applied.  Words appear with the same frequency in both categories all become stacked atop each other, however this provides more interior space for labeling. 
+
+\vspace{-.25cm}
+\begin{SCfigure}[][h]
+ \scalebox{.5}{\includegraphics[width=\columnwidth]{nojitter}}
+\label{nojitterfig}
+\caption{A small excerpt from an un-jittered version at the bottom of Figure 2.  The dark, opaque points indicate many words (all with the same frequencies in both corpora) stack atop each other, making it impossible to definitively count or label any points not on the top of the stack.}
+\end{SCfigure}
+\vspace{-.5cm}
+
+The next section presents Scattertext and how its approach to word ordering solves the problems discussed above.
+
+It should be noted this type of visualization may have first been introduced in Rudder \shortcite{Rudder2014}.
 
 \section{Scattertext}
 \label{scattertext}
@@ -102,20 +144,24 @@ PMI for phrase recognition.
 
 Uses spacy. (cite)
 
-Terms are given category-association scores based on their distance to the upper-left (category \textit{A}) or lower-right (category \textit{B}) corner.
-
 \begin{equation}
   \mbox{insert rudder score here}
   \label{eqn:cornerscore}
 \end{equation}
 
 \begin{figure*}[h]
-  \includegraphics[width=\linewidth]{similarity_scattertext}
-  \caption{Words and phrases that are semantically similar to the word ``jobs`` are colored darker, proportional to their cosine similarity over GloVe vectors.}
+  \includegraphics[width=\linewidth]{sparse_scattertext}
+  \caption{Points are colored using feature weights from $\ell$1 penalized logistic regression.  Grey points have zero-weights.}
+  \label{scattertextsparse}
 \end{figure*}
 
+\begin{figure*}[h!!]
+  \includegraphics[width=\linewidth]{similarity_scattertext}
+  \caption{Words and phrases that are semantically similar to the word ``jobs`` are colored darker, proportional to their cosine similarity over GloVe vectors. The most similar are words and phrases included in the visualization sorted by their cosine-similarity to ``jobs''.}
+  \label{scattertextembeddings}
+\end{figure*}
 
-Points are colored based on their based on their highest category-association score.  Points closest to the upper-left-hand corer are colored in progressively darker shades of blue, whiles those closest to the lower-right hand corder in progressively darker shades of red.  To prevent points approximately equidistant from both corners from turning white and blending into the background, they progressively turn yellow.  The colors are provided by D3's ``RdYlBu'' diverging-color scheme. \cite{d3}
+Points are colored based on their based on their highest category-association score.  Points closest to the upper-left-hand corer are colored in progressively darker shades of blue, whiles those closest to the lower-right hand corder in progressively darker shades of red.  To prevent points approximately equidistant from both corners from turning white and blending into the background, they progressively turn yellow.  The colors are provided by D3's ``RdYlBu'' diverging-color scheme from Harrower and Brewer \cite{colorbrewer} via d3 \cite{d3}.
 
 Talk about relationship to log-odds.  Points on axes represent infinite log-odds. 
 
@@ -130,9 +176,9 @@ In the previous example, identifying the top category-associated terms to displa
 
 Since the scores are not only on separate scales $[0,1]$ for cosine distance and $[0, \sqrt{2}]$ for euclidean but also differently distributed, the mean of both scores may end up being biased toward one.  To resolve these scaling and distributional differences, both scores transformed using the non-parametric percentile rank transform.  To ensure both scores are relatively high, the harmonic mean is used to combine these transformed scores.
 
-
 \nocite{ggplot2}
+\nocite{Rudder2014}
+\nocite{tidytext}
 \bibliographystyle{acl}
 \bibliography{kessler2017}
-
 \end{document}
