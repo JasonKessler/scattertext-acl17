@@ -8,6 +8,8 @@
 \usepackage{hyperref}
 \usepackage{enumitem}
 \usepackage{sidecap}
+\usepackage{amsmath}
+\usepackage[hang,flushmargin]{footmisc}
 \sidecaptionvpos{figure}{c}
 \setenumerate{label=(\roman*),itemsep=1pt,topsep=1pt}
 \usepackage{lipsum}
@@ -136,7 +138,7 @@ Scattertext builds on tinytext and Rudder \shortcite{Rudder2014}.  It plots a se
 
 In the following notation, user-supplied parameters are in bold typeface. 
 
-Consider a corpus of documents $C$ with disjoint subsets $A$ and $B$ s.t. $A \cup B \equiv C$. Let $\phi^T$ be the number of times term $t$ occurs in $C$, $\phi^{T}(t,A)$ be the the number of times $t$ occurs in $A$. Let $\phi^{D}(t,...)$ refer to the number of documents containing $t$.  Let $t_{ij}$ be the $j$th word in term $t_i$.  In practice, $j \in \{1,2\}$.   Whether $\phi^T$ or $\phi^D$ is used in formulas described below is a parameter \mbox{\boldmath$\phi$}.  Let
+Consider a corpus of documents $C$ with disjoint subsets $A$ and $B$ s.t. $A \cup B \equiv C$. Let $\phi^T$ be the number of times term $t$ occurs in $C$, $\phi^{T}(t,A)$ be the the number of times $t$ occurs in $A$. Let $\phi^{D}(t,\ldots)$ refer to the number of documents containing $t$.  Let $t_{ij}$ be the $j$th word in term $t_i$.  In practice, $j \in \{1,2\}$.   Whether $\phi^T$ or $\phi^D$ is used in formulas described below is a parameter \mbox{\boldmath$\phi$}.  Let
 \vspace{-.2cm}
 $$Pr[t_i] = \frac{\mbox{\boldmath$\phi$}(t_i)}{\sum_{t \in C\wedge|t|\equiv|t_i|} \mbox{\boldmath$\phi$}(t)}.$$
 \vspace{-.2cm}
@@ -165,10 +167,25 @@ This limits $x$ values to $[0,1]$, ensuring both axes are scaled identically.  T
 
 These alignments provide two advantages. First, they open up point-free tracts in the center of the chart which allow for unobstructed interior labels. Second, the align points in a way that its easy to hover a mouse over all of them, to indicate what term they correspond to, and to see be clicked to see excerpts of that term.
 
-We 
+Rudder \shortcite{Rudder2014} observed terms closer to the lower-right corner were used frequently in $A$ and infrequently in $B$, indicating they have both high recall and precision wrt category $A$.  Symmetrically, the same relationship exists for $B$ and and the upper-right corner.  We can formalize this score between a point's coordinates and it's respective corner.  This intuition is represented by a score function $s_K(t)$ ($K\in\{A,B\}$ and $t\in V$) where
+\vspace{-.3cm}
+\begin{equation}
+s_K(t)= 
+\begin{cases} \|\langle 1-x_{t}^{A}, x_{t}^{B}\rangle\| & \text{if $K=A$,}
+\\
+\|\langle x_{t}^{A}, 1-x_{t}^{B}\rangle\| &\text{if $K=B$}
+\end{cases}.
+  \label{eqn:cornerscore}
+\end{equation}
 
-Points are colored based on their based on their highest category-association score.  Points closest to the upper-left-hand corer are colored in progressively darker shades of blue, whiles those closest to the lower-right hand corder in progressively darker shades of red.  To prevent points approximately equidistant from both corners from turning white and blending into the background, they progressively turn yellow.  The colors are provided by D3's ``RdYlBu'' diverging-color scheme from Harrower and Brewer \cite{colorbrewer} via d3 \cite{d3}.
+Labels are added to points in such a way as to not overlap a point or another label.  The process consists of greedily attempting to label each $t$'s point, starting with those with highest $s$ regardless of category and continuing in order of score.  12 locations around each point are tested for labeling, and if one is available, its used and the next point is examined.  An optimized data structure automatically constructed using Cozy \cite{cozy} holds the locations of points and labels. 
 
+The top scoring terms in classes $B$ and $A$ (in Figure 1 Democrats and Republicans) are listed to the left of the chart.  Hovering each labeled term (regardless of where it is on the visualization) highlights the point and gives statistics about the term.  
+
+Points are colored based on their based on $s$.  Those corresponding to terms with a high $s_B$ colored in progressively darker shades of blue, whiles those with a higher $s_A$ are colored in progressively darker shades of red.  When both scores are about equal, the point colors become more yellow, which creates a visual divider between the two classes.   The colors are provided by D3's ``RdYlBu'' diverging-color scheme from Harrower and Brewer \cite{colorbrewer} via d3 \cite{d3}.
+
+Other point colors (and scorings) can be used.  For example, Figure \ref{scattertextsparse} shows regression coefficients of an $\ell$1 penalized logistic regression classifier on $V$ features using document categories as labels.  Scattertext, in this example, is set to color 0 coefficients light gray.  The highly predictive words deemed redundant but still having high recall and low visible are visible in.  See below\footnote{
+\href{https://jasonkessler.github.io/sparseviz.html}{jasonkessler.github.io/sparseviz.html}} for an interactive version.
 
 \begin{figure}[h]
   \includegraphics[width=\linewidth]{sparse_scattertext}
@@ -182,18 +199,24 @@ Points are colored based on their based on their highest category-association sc
   \label{scattertextembeddings}
 \end{figure*}
 
-
-\section{Semantically Similar Category Discriminators}
+\vspace{-0.3cm}
+\section{Visualizing Concepts via Embeddings}
 \label{embeddings}
 
-Suppose you would like to see how see how presidential candidates used language relating to a word like ``job'', ``healthcare'', or ``military'' in presidential debates.  
+Suppose you would like to see how see how presidential candidates used language relating to a word like ``job'', ``healthcare'', or ``military'' in American presidential convention speeches.   Figure \ref{scattertextembeddings} shows, in our running example, how Democrats and Republicans speak differently about the concept ``jobs''.  
 
-Using spaCy-provided GloVe \cite{glove} word vectors trained on the Common Crawl corpus (cite glove, spacy), the cosine distance between the target word and each term is computed.  Points on the chart were colored by their similarity to the the target word, but still positioned on the chart based on their category-specific mention-frequency.
+There has been much work in visualizing word embeddings\footnote{E.g., \href{http://projector.tensorflow.org/}{projector.tensorflow.org}}, none to the knowledge of this author has focused on visualizing category-discriminating embeddings.
 
-In the previous example, identifying the top category-associated terms to display was straight-forward--rank terms based on their euclidean distance to a corner (Equation \ref{eqn:cornerscore}).  This scenario adds the constraint that high scoring terms should be semantically similar to the target term. 
+In this configuration of Scattertext, words are colored by their similarity to a query phrase.  This is done using spaCy\footnote{\href{https://spacy.io/}{spacy.io}}-provided GloVe \cite{glove} word vectors (trained on the Common Crawl corpus).  Similarity is measured via cosine distance between the mean embeddings of each word in the query phrase each term embedding (mean embeddings are taken from bigram terms).  The most similar terms (${\in}
+V$) to the query are listed on the far right-hand side of the visualization. 
 
-Since the scores are not only on separate scales $[0,1]$ for cosine distance and $[0, \sqrt{2}]$ for euclidean but also differently distributed, the mean of both scores may end up being biased toward one.  To resolve these scaling and distributional differences, both scores transformed using the non-parametric percentile rank transform.  To ensure both scores are relatively high, the harmonic mean is used to combine these transformed scores.
+The calculation of the most similar terms associated with each category is a simple heuristic which appears to work well.  For each category, a set of associated terms is found and the most similar terms to the query from that listed as ``Top'' terms to the right of the scatter-plot.  The associated terms are identified through having p-values $<$0.05, using Monroe et al. \shortcite{monroe08}'s difference in weighted log-odds-ratio with an uninformative Dirichlet prior.  Three model-based, regularized version of log-odds-ratio are introduced in Monroe et al.  The two preferred models rely on the presence of an in-domain background corpus of sufficient size to penalize common terms, and only unigrams are used in their study.  
 
+The remaining function relies on a the hyperparameter \mbox{\boldmath$\alpha$} to be passed to the Dirichlet prior.  \mbox{\boldmath$\alpha$} is a vector of size $|V|$, and example of Monroe et al. is followed using a uniform value of $0.01$.  Formulas (16), (18) and (22) are used to compute term z-scores, which are then converted to p-values using the Normal CDF.
+
+As seen in Figure \ref{scattertextembeddings}, the top Republican word related to ``jobs'' is ``job creators'', while ``workers'' is the top Democratic term.
+
+\vspace{-0.3cm}
 \nocite{ggplot2}
 \nocite{Rudder2014}
 \nocite{tidytext}
