@@ -115,13 +115,13 @@ The tidytext R-package \cite{tidytext} documentation includes a non-interactive 
 
 Despite that the labels in tidytext do not overlap each other (in contrast to Monroe et al.) they do overlap points.  The points' semi-transparency makes labels in less-dense areas legible, the dense interior of the chart is nearly illegible.  Moreover, this can 
 
-Figure \ref{nojitterfig} shows what such a plot may look like if no jitter were applied.  Words appear with the same frequency in both categories all become stacked atop each other, however this provides more interior space for labeling. 
+Figure 2 shows what such a plot may look like if no jitter were applied.  Words appear with the same frequency in both categories all become stacked atop each other, however this provides more interior space for labeling. 
 
 \vspace{-.25cm}
 \begin{SCfigure}[][h]
  \scalebox{.5}{\includegraphics[width=\columnwidth]{nojitter}}
+\caption{A small excerpt from an un-jittered version at the bottom of Figure 3.  The dark, opaque points indicate many words (all with the same frequencies in both corpora) stack atop each other, making it impossible to definitively count or label any points not on the top of the stack.}
 \label{nojitterfig}
-\caption{A small excerpt from an un-jittered version at the bottom of Figure 2.  The dark, opaque points indicate many words (all with the same frequencies in both corpora) stack atop each other, making it impossible to definitively count or label any points not on the top of the stack.}
 \end{SCfigure}
 \vspace{-.5cm}
 
@@ -132,28 +132,49 @@ It should be noted this type of visualization may have first been introduced in 
 \section{Scattertext}
 \label{scattertext}
 
-Term labeling that prioritizes weights. \cite{cozy}, solves overlapping text and point problem.  When sparse term weights are shown, color zero-points in dark gray, optionally place labels over them.  
+Scattertext builds on tinytext and Rudder \shortcite{Rudder2014}.  It plots a set of unigrams and bigrams (we will refer to these to as ``terms'') found in a corpus documents assigned to one of two categories on a two-dimensional scatter-plot.  
 
-interactive-- click to see contexts.  Mousing over points give statistics, and mousing over labels indicates placement of points.  Sidebars of associated and characteristic terms can be moused-over to see placement of term on scatter chart.
+In the following notation, user-supplied parameters are in bold typeface. 
 
-Mention size limits, and manual tuning.  
+Consider a corpus of documents $C$ with disjoint subsets $A$ and $B$ s.t. $A \cup B \equiv C$. Let $\phi^T$ be the number of times term $t$ occurs in $C$, $\phi^{T}(t,A)$ be the the number of times $t$ occurs in $A$. Let $\phi^{D}(t,...)$ refer to the number of documents containing $t$.  Let $t_{ij}$ be the $j$th word in term $t_i$.  In practice, $j \in \{1,2\}$.   Whether $\phi^T$ or $\phi^D$ is used in formulas described below is a parameter \mbox{\boldmath$\phi$}.  Let
+\vspace{-.2cm}
+$$Pr[t_i] = \frac{\mbox{\boldmath$\phi$}(t_i)}{\sum_{t \in C\wedge|t|\equiv|t_i|} \mbox{\boldmath$\phi$}(t)}.$$
+\vspace{-.2cm}
+The construction of the set of terms included in the visualization $V$ is a two-step process. Terms must occur at least \mbox{\boldmath$m$} times, and if bigrams, appear to be phrases.  In order to keep the approach language neutral, we follow Schartz et al. \shortcite{Schwartz13}, and use a pointwise mutual information score to filter out bigrams that do not occur far more frequently that would be expected.  Let
 
-Cross-lingual (e.g., chinese, cite segmenter)
+\vspace{-.2cm}
+$$PMI(t_i) = \log \frac{Pr[t_i]}{\prod_{t_{ij}\in t_i{Pr[T_{ij}]}}}.$$
+\vspace{-.2cm}
 
-PMI for phrase recognition.
+The minimum $PMI$ accepted is \mbox{\boldmath$p$}. Now, we can define $V$ as 
+\vspace{-.2cm}
+$$\{t|\mbox{\boldmath$\phi$}(t)<\mbox{\boldmath$m$} \wedge (|t| \equiv 1 \vee PMI(t) > \mbox{\boldmath$p$}\}.$$
+\vspace{-.2cm}
 
-Uses spacy. (cite)
+Let a term $t$'s coordinates on the scatter-plot be $(x^{A}_{t}, x^{B}_t)$, where $A$ and $B$ are the two document categories. Although $x^{K}_t$ is proportional to $\mbox{\boldmath$\phi$}(t,K)$, many $t$ will have identical $\mbox{\boldmath$\phi$}(t,K)$ values.  To break ties the word that appears last alphabeically will have a larger $x^{K}_t$.
 
-\begin{equation}
-  \mbox{insert rudder score here}
-  \label{eqn:cornerscore}
-\end{equation}
+We define $r^{K}_t$ s.t. $t \in V$ and $K \in \{A,B\}$ as the ranks of $\mbox{\boldmath$\phi$}(t,K)$, sorted in ascending order, where ties are broken by terms' alphabetical order.  This allows us to define 
 
-\begin{figure*}[h]
+\vspace{-.2cm}
+$$x^{K}_t = \frac{r^{K}_t}{\arg\!\max r^{K}}.$$
+\vspace{-.2cm}
+
+This limits $x$ values to $[0,1]$, ensuring both axes are scaled identically.  This keeps the chart from becoming lopsided toward the corpus that had a larger number of terms. 
+
+\textbf{Breaking ties alphabetically is a simple but important alternative to jitter.} While jitter (i.e., randomly perturbing $x_{t}^{A}$ and $x_{t}^{B}$) breaks up the stacked points shown in Figure 3, it eliminates empty space to legibly label points, and can make it seem like identically frequent points are closer to an upper-left or lower right corner.  Alphabetic tie breaking makes identical adjustments to both axes, leading to the horizontal (lower-left to upper-right) alignments of identically frequent points.  This angle does not cause one point to be substantially closer to either of the category-associated corners (the upper-left and lower-right). 
+
+These alignments provide two advantages. First, they open up point-free tracts in the center of the chart which allow for unobstructed interior labels. Second, the align points in a way that its easy to hover a mouse over all of them, to indicate what term they correspond to, and to see be clicked to see excerpts of that term.
+
+We 
+
+Points are colored based on their based on their highest category-association score.  Points closest to the upper-left-hand corer are colored in progressively darker shades of blue, whiles those closest to the lower-right hand corder in progressively darker shades of red.  To prevent points approximately equidistant from both corners from turning white and blending into the background, they progressively turn yellow.  The colors are provided by D3's ``RdYlBu'' diverging-color scheme from Harrower and Brewer \cite{colorbrewer} via d3 \cite{d3}.
+
+
+\begin{figure}[h]
   \includegraphics[width=\linewidth]{sparse_scattertext}
   \caption{Points are colored using feature weights from $\ell$1 penalized logistic regression.  Grey points have zero-weights.}
   \label{scattertextsparse}
-\end{figure*}
+\end{figure}
 
 \begin{figure*}[h!!]
   \includegraphics[width=\linewidth]{similarity_scattertext}
@@ -161,9 +182,6 @@ Uses spacy. (cite)
   \label{scattertextembeddings}
 \end{figure*}
 
-Points are colored based on their based on their highest category-association score.  Points closest to the upper-left-hand corer are colored in progressively darker shades of blue, whiles those closest to the lower-right hand corder in progressively darker shades of red.  To prevent points approximately equidistant from both corners from turning white and blending into the background, they progressively turn yellow.  The colors are provided by D3's ``RdYlBu'' diverging-color scheme from Harrower and Brewer \cite{colorbrewer} via d3 \cite{d3}.
-
-Talk about relationship to log-odds.  Points on axes represent infinite log-odds. 
 
 \section{Semantically Similar Category Discriminators}
 \label{embeddings}
