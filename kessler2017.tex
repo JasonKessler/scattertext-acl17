@@ -188,7 +188,7 @@ In this configuration of Scattertext, words are colored by their similarity to a
 
 The calculation of the most similar terms associated with each category is a simple heuristic.  First, sets of terms closely associated with a category are found. Second, these terms are ranked based on their similarity to the query, and the top rank terms are displayed to the right of the scatterplot (Figure \ref{scattertextembeddings}).  
 
-A term is considered associated if its p-value is less than 0.05.  P-values are determined using MCQ's difference in weighted log-odds-ratio with an uninformative Dirichlet prior.  This is the only model-based method discussed in Monroe et al. that does not rely on a large, in-domain background corpus. Since we are scoring bigrams in addition to the unigrams scored by MCQ, the size of the corpus would have to be larger to have high enough bigram counts for proper penalization.
+A term is considered associated if its p-value is less than 0.05.  P-values are determined using MCQ's difference in the weighted log-odds-ratio with an uninformative Dirichlet prior.  This is the only model-based method discussed in Monroe et al. that does not rely on a large, in-domain background corpus. Since we are scoring bigrams in addition to the unigrams scored by MCQ, the size of the corpus would have to be larger to have high enough bigram counts for proper penalization.
 
 This function relies the Dirichlet distribution's parameter $\alpha$, a real, positive vector of size $|V|$. Following MCQ, $\alpha_t = 0.01$.  Formulas 16, 18 and 22 are used to compute z-scores, which are then converted to p-values using the Normal CDF of $\hat{\zeta}_{w}^{A-B}$, letting $y^{(K)}_{t} = \mbox{\boldmath$\phi$}(t,K)$ st ${K}\in{\{A,B\}}$ and $t\in{V}$.
 
