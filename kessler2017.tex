@@ -1,5 +1,5 @@
 \documentclass[11pt,a4paper]{article}
-\usepackage[hyperref]{acl2017}
+\usepackage[hyperref]{acl2017_arxiv}
 \usepackage{times}
 \usepackage{svg}
 \usepackage{url}
@@ -46,7 +46,7 @@ A wide range of visualizations have been used to highlight discriminating words-
 \begin{figure*}[h!!]
   \includegraphics[width=\linewidth,scale=0.8]{primary_scattertext}
   \caption{Scattertext visualization of words and phrases used in the 2012 Political Conventions.  2,202 points are colored red or blue based on the association of their corresponding terms with Democrats or Republicans, 215 of which were labeled. The corpus consists of 123 speeches by Democrats (76,864 words) and 66 by Republicans (58,138 words). The most associated terms are listed under ``Top Democrat'' and ``Top Republican'' headings. Interactive version: \href{https://jasonkessler.github.io/st-main.html}{https://jasonkessler.github.io/st-main.html}}
-\label{scattertextmain}
+\label{scattertextmain}\vspace{-5mm}
 \end{figure*}
 Scattertext\footnote{\href{http://www.github.com/JasonKessler/scattertext}{github.com/JasonKessler/scattertext}} is an interactive, scalable tool which overcomes many of these limitations.  It is built around a scatterplot which displays a high number of words and phrases used in a corpus.  Points representing terms are positioned to allow a high number of unobstructed labels and to indicate category association.  The coordinates of a point indicate how frequently the word is used in each category.  
 
@@ -137,7 +137,7 @@ We define $r^{K}_t$ s.t. $t \in V$ and $K \in \{A,B\}$ as the ranks of $\mbox{\b
 \vspace{-.2cm}
 x^{K}_t = \frac{r^{K}_t}{\arg\!\max r^{K}}
 \end{equation}
-This limits $x$ values to $[0,1]$, ensuring both axes are scaled identically.  This keeps the chart from becoming lopsided toward the corpus that had a larger number of terms. 
+This limits $x$ values to $[0,1]$, ensuring both axes are scaled identically.  This keeps the chart from becoming lopsided toward the corpus that had a larger number of terms.\footnote{While both are available, ordinal ranks are preferable to log frequency since uninteresting stop-words often occupy disproportionate axis space.} 
 
 The charts in Figures \ref{scattertextmain}, \ref{scattertextsparse}, and \ref{scattertextembeddings}, were made with parameters $\mbox{\boldmath$m$}{=}5$, $\mbox{\boldmath$p$}{=}8$, and $\mbox{\boldmath$\phi$}{=}\phi^{T}$. 
 
@@ -195,7 +195,8 @@ This function relies the Dirichlet distribution's parameter $\alpha$, a real, po
 As seen in Figure \ref{scattertextembeddings}, the top Republican word related to ``jobs'' is ``job creators'', while ``workers'' is the top Democratic term.
 \section{Conclusion}
 We have described Scattertext, a tool to make legible comprehensive visualizations of labeled corpora.  We have demonstrated how it can be used to examine importance scores of bag-of-words features and visualize word representations through a category-associated lens. 
-%ack Jay Powell, Kyle Lo, Ray LH, Will Headden, Chuck Little, Nancy Kessler
+%\section*{Acknowledgments}
+%Jay Powell, Kyle Lo, Ray Little-Herricks, Will Headden, Chuck Little, and Nancy %Kessler helped proofread this work.
 \vspace{-.5cm}
 \bibliography{kessler2017}
 \bibliographystyle{acl_natbib}
