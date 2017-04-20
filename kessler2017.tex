@@ -48,6 +48,7 @@ A wide range of visualizations have been used to highlight discriminating words-
   \caption{Scattertext visualization of words and phrases used in the 2012 Political Conventions.  2,202 points are colored red or blue based on the association of their corresponding terms with Democrats or Republicans, 215 of which were labeled. The corpus consists of 123 speeches by Democrats (76,864 words) and 66 by Republicans (58,138 words). The most associated terms are listed under ``Top Democrat'' and ``Top Republican'' headings. Interactive version: \href{https://jasonkessler.github.io/st-main.html}{https://jasonkessler.github.io/st-main.html}}
 \label{scattertextmain}\vspace{-5mm}
 \end{figure*}
+
 Scattertext\footnote{\href{http://www.github.com/JasonKessler/scattertext}{github.com/JasonKessler/scattertext}} is an interactive, scalable tool which overcomes many of these limitations.  It is built around a scatterplot which displays a high number of words and phrases used in a corpus.  Points representing terms are positioned to allow a high number of unobstructed labels and to indicate category association.  The coordinates of a point indicate how frequently the word is used in each category.  
 
 Figure \ref{scattertextmain} shows an example of a Scattertext plot comparing Republican and Democratic political speeches.  The higher up a point is on the y-axis, the more it was used by Democrats, and similarly, the further right on the x-axis a point appears, the more its corresponding word was used by Republicans.  Highly associated terms fall closer to the upper left and lower right-hand corners of the chart, while stop words fall in the far upper right-hand corner.  Words occurring infrequently in both classes fall closer to the lower left-hand corner.  
@@ -70,35 +71,32 @@ Regardless of how complex the calculation, word scores capture a number of diffe
 \end{description}
 \section{Past work and design motivation}
 \label{pastwork}
-Text visualizations manipulate the position and appearance of words or points representing them to indicate their relative scores in these measures. For example, in Schwartz et al. \shortcite{Schwartz13}, two word clouds are given, one per each category of text being compared.  Words (and selected n-grams) are sized by their linear regression coefficients (a composite metric of precision, recall, and redundancy) and colored by frequency. Only words occurring in $geq$1\% of documents and having Bonferroni-corrected coefficient p-values of $<$0.001 were shown. Given that these words are highly correlated to their class of interest, the frequency of use is likely a good proxy for recall.
+Text visualizations manipulate the position and appearance of words or points representing them to indicate their relative scores in these measures. For example, in Schwartz et al. \shortcite{Schwartz13}, two word clouds are given, one per each category of text being compared.  Words (and selected n-grams) are sized by their linear regression coefficients (a composite metric of precision, recall, and redundancy) and colored by frequency. Only words occurring in $\geq$1\% of documents and having Bonferroni-corrected coefficient p-values of $<$0.001 were shown. Given that these words are highly correlated to their class of interest, the frequency of use is likely a good proxy for recall.
 
 Coppersmith and Kelly \shortcite{vennclouds} also describe a word-cloud based visualization for discriminating terms, but intend it for categories which are both small subsets of a much larger corpus. They include a third, middle cloud for terms that appear characteristic.  
 
-Word clouds can be difficult to interpret.  It is difficult to compare the sizes of two non-horizontally adjacent words,  as well as the relative color intensities of any two words. By virtue of being larger, longer words can unintentionally appear more important.  Sizing of words can be a source of confusion when used to represent precision, since a larger word may naturally be seen as more frequent.
+Word clouds can be difficult to interpret.  It is difficult to compare the sizes of two non-horizontally adjacent words,  as well as the relative color intensities of any two words. Longer words unintentionally appear more important since they naturally occupy more space in the cloud.  Sizing of words can be a source of confusion when used to represent precision, since a larger word may naturally be seen as more frequent.
 
-Bostock et al. \shortcite{Bostock2012}\footnote{\href{http://www.nytimes.com/interactive/2012/09/06/us/politics/convention-word-counts.html}{nytimes.com/interactive/2012/09/06/us/politics/convention-word-counts.html}} employed an interesting, interactive word-bubble visualization for exploring different word usage among Republicans and Democrats in the 2012 American Political Conventions.  A bubble represents each term, and its size increases with its frequency of use.  Its precision is represented by its coloring-- each bubble is colored blue and red, with the blue portion proportionally colored to a term's relative use by Democrats.  Terms were manually chosen, and arranged along the x-axis based on their discriminative power. When clicked, sentences from speeches containing the word used are listed below the visualization.  This bubble approach to word clouds inspired Nelson et al. \shortcite{Nelson2015}.
+Bostock et al. \shortcite{Bostock2012}\footnote{\href{http://www.nytimes.com/interactive/2012/09/06/us/politics/convention-word-counts.html}{nytimes.com/interactive/2012/09/06/us/politics/convention-word-counts.html}} features an interactive word-bubble visualization for exploring different word usage among Republicans and Democrats in the 2012 US presidential nominating conventions.  Each term displayed is represented by a bubble, sized proportionate to their frequency.  Each bubble is colored blue and red, s.t. the blue partition's size corresponds to the term's relative use by Democrats.  Terms were manually chosen, and arranged along the x-axis based on their discriminative power. When clicked, sentences from speeches containing the word used are listed below the visualization. 
 
-The dataset used in Bostock et al. \shortcite{Bostock2012} is used to demonstrate the capabilities of Scattertext in each of these figures.  The dataset is accessible the Scattertext Github.
+The dataset used in Bostock et al. \shortcite{Bostock2012} is used to demonstrate the capabilities of Scattertext in each of these figures.  The dataset is available via the Scattertext Github page.
 \subsection{Scatterplot visualizations}
 \vspace{-4mm}
 \begin{figure}[h] 
 \includegraphics[width=\columnwidth]{monroefull}
 \includegraphics[width=\columnwidth]{tidytext}
-\caption{A sample of existing scatterplot visualizations. MCQ's  is at the top. Tidytext (Silge and Robinson, 2016) is below.} 
+\caption{A sample of existing scatterplot visualizations. MCQ's is at the top. Tidytext is below.} 
 % Flawed solutions to the label-overlap problem: labeling points to the left of the graph \cite{schofield2016gender} (top) and non-overlapping labels of jittered points \cite{tidytext}.
 \label{scatters}
 \end{figure}
 \vspace{-3mm}
-MCQ present a visualization to illustrate the use of their proposed word score, log-odds-ratio with an informative Dirichlet prior (top of Figure \ref{scatters}).  This visualization plots word-representing points along two axes.  The axes are log$_{10}$ recall vs. the difference in word scores z-scores.  Points with a z-score difference below 1.96 are grayed-out, while the top and bottom 20 are labeled, both by each point and on the right-hand side.  The side-labeling is necessary because labels are permitted to overlap, hindering their on-plot readability.  The sizes of points and labels are increased proportionally to the word score. This word score encompasses precision, recall, and characteristicness since it penalizes scores of terms used more frequently in the background corpus. 
-
-MCQ used this type of plot to illustrate the different effects of various scoring techniques introduced in the paper.  However, the small number of points which are possible to label limit its utility for in-depth corpus analysis.  
+MCQ present a visualization to illustrate the use of their proposed word score, log-odds-ratio with an informative Dirichlet prior (top of Figure \ref{scatters}).  This visualization plots word-representing points along two axes.  The axes are log$_{10}$ recall vs. the difference in word scores z-scores.  Points with a z-score difference $<$1.96 are grayed-out, while the top and bottom 20 are labeled, both by each point and on the right-hand side.  The side-labeling is necessary because labels are permitted to overlap, hindering their on-plot readability.  The sizes of points and labels are increased proportionally to the word score. This word score encompasses precision, recall, and characteristicness since it penalizes scores of terms used more frequently in the background corpus. MCQ used this type of plot to illustrate the different effects of various scoring techniques introduced in the paper.  However, the small number of points which are possible to label limit its utility for in-depth corpus analysis.  
 
 Schofield and Mehr \shortcite{schofield2016gender} use essentially the same visualization, but plot over 100 corresponding n-grams next to an unlabeled frequency/z-score plot.  While this is appropriate for publication, displaying associated terms and the shape of the score distribution, it is impossible to align all but the highest scoring points to their labels. 
 
 The tidytext R-package \cite{tidytext} documentation includes a non-interactive ggplot2-based scatter plot that is very similar to Scattertext.   The x and y-axes both, like in Scattertext, correspond to word frequencies in the two contrasting categories, with jitter added.\footnote{This type of visualization may have first been introduced in Rudder \shortcite{Rudder2014}.}  In the example in Figure \ref{scatters} (bottom), the contrasting categories are tweets from two different accounts.  The red diagonal line separates words based on their odds-ratio.  Importantly, compared to MCQ, less of this chart's area is occupied by whitespace. 
 
 While tidytext's labels do not overlap each other (in contrast to MCQ) they do overlap points.  The points' semi-transparency makes labels in less-dense areas legible, the dense interior of the chart is nearly illegible, with both points and labels obscured. 
-
 \begin{figure}[h]
 \vspace{-.25cm}
 \includegraphics[width=\columnwidth]{tidytext_horiz}
@@ -108,6 +106,8 @@ While tidytext's labels do not overlap each other (in contrast to MCQ) they do o
 \end{figure}
 Figure \ref{nojitterfig} shows an excerpt of the same plot, but with no jitter.  Words appearing with the same frequency in both categories all become stacked atop each other, however, this provides more interior space for labeling. 
 
+Many text visualizations plot words in a 2D space according to their similarity in a high dimensional space.  For example, Cho et al. \citeyear{Cho2014} uses the Barnes-Hut-SNE to plot words in a 2D space s.t. those with similar representations are grouped close together. Class-association does not play a role in this line of research, and global position is essentially irrelevant. 
+
 The next section presents Scattertext and how its approach to word ordering solves the problems discussed above. 
 \section{Scattertext}
 \label{scattertext}
@@ -115,13 +115,13 @@ Scattertext builds on tinytext and Rudder \shortcite{Rudder2014}.  It plots a se
 
 In the following notation, user-supplied parameters are in bold typeface. 
 
-Consider a corpus of documents $C$ with disjoint subsets $A$ and $B$ s.t. $A \cup B \equiv C$. Let $\phi^T(t,C)$ be the number of times term $t$ occurs in $C$, $\phi^{T}(t,A)$ be the the number of times $t$ occurs in $A$. Let $\phi^{D}(t,\ldots)$ refer to the number of documents containing $t$. Let $t_{ij}$ be the $j$th word in term $t_i$.  In practice, $j \in \{1,2\}$. The parameter $\mbox{\boldmath$\phi$}$ may be $\phi^T$ or $\phi^D$.\footnote{$\phi^D$ is useful when documents contain unique, characteristic, highly frequent terms.  For example, names of movies can have high $\phi^T$ when finding differences in positive and negative film reviews. The may lead to them receiving higher scores than sentiment terms.}  Other feature representations (ex., tf.idf) may be used for $\mbox{\boldmath$\phi$}$. 
+Consider a corpus of documents $C$ with disjoint subsets $A$ and $B$ s.t. $A \cup B \equiv C$. Let $\phi^T(t,C)$ be the number of times term $t$ occurs in $C$, $\phi^{T}(t,A)$ be the the number of times $t$ occurs in $A$. Let $\phi^{D}(t,A)$ refer to the number of documents in $A$ containing $t$. Let $t_{ij}$ be the $j$th word in term $t_i$. In practice, $j \in \{1,2\}$. The parameter $\mbox{\boldmath$\phi$}$ may be $\phi^T$ or $\phi^D$.\footnote{$\phi^D$ is useful when documents contain unique, characteristic, highly frequent terms.  For example, names of movies can have high $\phi^T$ when finding differences in positive and negative film reviews. The may lead to them receiving higher scores than sentiment terms.}  Other feature representations (ex., tf.idf) may be used for $\mbox{\boldmath$\phi$}$. 
 \begin{equation}
 \vspace{-.2cm}
 Pr[t_i] = \frac{\mbox{\boldmath$\phi$}(t_i,C)}{\sum_{t \in C\wedge|t|\equiv|t_i|} \mbox{\boldmath$\phi$}(t,C)}.
 \vspace{-.1cm}
 \end{equation}
-The construction of the set of terms included in the visualization $V$ is a two-step process. Terms must occur at least \mbox{\boldmath$m$} times, and if bigrams, appear to be phrases.  In order to keep the approach language neutral, we follow Schartz et al. \shortcite{Schwartz13}, and use a pointwise mutual information score to filter out bigrams that do not occur far more frequently than would be expected.  Let
+The construction of the set of terms included in the visualization $V$ is a two-step process. Terms must occur $geq$\mbox{\boldmath$m$} times, and if bigrams, appear to be phrases.  In order to keep the approach language neutral, I follow Schartz et al. \shortcite{Schwartz13}, and use a pointwise mutual information score to filter out bigrams that do not occur far more frequently than would be expected.  Let
 \begin{equation}
 \vspace{-.2cm}
 PMI(t_i) = \log \frac{Pr[t_i]}{\prod_{t_{ij}\in t_i{Pr[T_{ij}]}}}.
@@ -132,7 +132,7 @@ The minimum $PMI$ accepted is \mbox{\boldmath$p$}. Now, we can define $V$ as
 \end{equation}
 Let a term $t$'s coordinates on the scatterplot be $(x^{A}_{t}, x^{B}_t)$, where $A$ and $B$ are the two document categories. Although $x^{K}_t$ is proportional to $\mbox{\boldmath$\phi$}(t,K)$, many terms will have identical $\mbox{\boldmath$\phi$}(t,K)$ values.  To break ties the word that appears last alphabetically will have a larger $x^{K}_t$.
 
-We define $r^{K}_t$ s.t. $t \in V$ and $K \in \{A,B\}$ as the ranks of $\mbox{\boldmath$\phi$}(t,K)$, sorted in ascending order, where ties are broken by terms' alphabetical order.  This allows us to define \vspace{-.2cm}
+Let us define $r^{K}_t$ s.t. $t \in V$ and $K \in \{A,B\}$ as the ranks of $\mbox{\boldmath$\phi$}(t,K)$, sorted in ascending order, where ties are broken by terms' alphabetical order.  This allows us to define \vspace{-.2cm}
 \begin{equation}
 \vspace{-.2cm}
 x^{K}_t = \frac{r^{K}_t}{\arg\!\max r^{K}}
@@ -147,7 +147,7 @@ These alignments provide two advantages. First, they open up point-free tracts i
 
 In the running example, 154 points were labeled when a jitter of 10\% of each axis and no tie-breaking was applied. 210 points (a 36\% lift) were labeled when no jitter was applied. 140 were labeled if no tie breaking was used.
 
-Rudder \shortcite{Rudder2014} observed terms closer to the lower-right corner were used frequently in $A$ and infrequently in $B$, indicating they have both high recall and precision wrt category $A$.  Symmetrically, the same relationship exists for $B$ and the upper-right corner.  We can formalize this score between a point's coordinates and it's respective corner.  This intuition is represented by a score function $s_K(t)$ ($K\in\{A,B\}$ and $t\in V$) where
+Rudder \shortcite{Rudder2014} observed terms closer to the lower-right corner were used frequently in $A$ and infrequently in $B$, indicating they have both high recall and precision wrt category $A$.  Symmetrically, the same relationship exists for $B$ and the upper-right corner.  I can formalize this score between a point's coordinates and it's respective corner.  This intuition is represented by a score function $s_K(t)$ ($K\in\{A,B\}$ and $t\in V$) where
 \vspace{-.3cm}
 \begin{equation}
 s_K(t)= 
@@ -157,10 +157,9 @@ s_K(t)=
 \end{cases}.
   \label{eqn:cornerscore}
 \end{equation}
-
 Other term scoring methods (e.g., regression weights or a weighted log-odd-ratio with a prior) may be used in place of Formula \ref{eqn:cornerscore}.
 
-Maximal non-overlapping labeling of scatterplots is NP-hard \cite{Been2007}. Scattertex's heuristic is labeling points if space is available in one of 12 places around a point.  This is performed iteratively, beginning with points having the highest score (regardless of category) and proceeding downward in score.  An optimized data structure automatically constructed using Cozy \cite{cozy} holds the locations of drawn points and labels. 
+Maximal non-overlapping labeling of scatterplots is NP-hard \cite{Been2007}. Scattertext's heuristic is labeling points if space is available in one of many places around a point.  This is performed iteratively, beginning with points having the highest score (regardless of category) and proceeding downward in score.  An optimized data structure automatically constructed using Cozy \cite{cozy} holds the locations of drawn points and labels. 
 
 The top scoring terms in classes $B$ and $A$ (Democrats and Republicans in Figure \ref{scattertextmain}) are listed to the right of the chart.  Hovering over points and terms highlights the point and displays frequency statistics.
 
@@ -182,21 +181,19 @@ Other point colors (and scorings) can be used.  For example, Figure \ref{scatter
 \label{embeddings}
 In 2012, how did Republicans and Democrats use language relating to ``jobs'', ``healthcare'', or ``military'' differently?   Figure \ref{scattertextembeddings} shows, in our running example, words similar to ``jobs'' that were characteristic of the political parties.  
 
-There has been much work in visualizing word vectors\footnote{E.g., \href{http://projector.tensorflow.org/}{projector.tensorflow.org}} and none to my knowledge has involved category-association.
-
-In this configuration of Scattertext, words are colored by their similarity to a query phrase.  This is done using spaCy\footnote{\href{https://spacy.io/}{spacy.io}}-provided GloVe \cite{glove} word vectors (trained on the Common Crawl corpus). The cosine distance between vectors is used, with mean vectors used for phrases.
+In this configuration of Scattertext, words are colored by their cosine similarity to a query phrase.  This is done using spaCy\footnote{\href{https://spacy.io/}{spacy.io}}-provided GloVe \cite{glove} word vectors (trained on the Common Crawl corpus). Mean vectors are used for phrases.
 
 The calculation of the most similar terms associated with each category is a simple heuristic.  First, sets of terms closely associated with a category are found. Second, these terms are ranked based on their similarity to the query, and the top rank terms are displayed to the right of the scatterplot (Figure \ref{scattertextembeddings}).  
 
-A term is considered associated if its p-value is less than 0.05.  P-values are determined using MCQ's difference in the weighted log-odds-ratio with an uninformative Dirichlet prior.  This is the only model-based method discussed in Monroe et al. that does not rely on a large, in-domain background corpus. Since we are scoring bigrams in addition to the unigrams scored by MCQ, the size of the corpus would have to be larger to have high enough bigram counts for proper penalization.
+A term is considered associated if its p-value is $<$0.05.  P-values are determined using MCQ's difference in the weighted log-odds-ratio with an uninformative Dirichlet prior.  This is the only model-based method discussed in Monroe et al. that does not rely on a large in-domain background corpus.  Since I am scoring bigrams in addition to the unigrams scored by MCQ, the size of the corpus would have to be larger to have high enough bigram counts for proper penalization.
 
-This function relies the Dirichlet distribution's parameter $\alpha$, a real, positive vector of size $|V|$. Following MCQ, $\alpha_t = 0.01$.  Formulas 16, 18 and 22 are used to compute z-scores, which are then converted to p-values using the Normal CDF of $\hat{\zeta}_{w}^{A-B}$, letting $y^{(K)}_{t} = \mbox{\boldmath$\phi$}(t,K)$ st ${K}\in{\{A,B\}}$ and $t\in{V}$.
+This function relies the Dirichlet distribution's parameter $\alpha \in \mathbf{R}_{+}^{|V|}$. Following MCQ, $\alpha_t = 0.01$.  Formulas 16, 18 and 22 are used to compute z-scores, which are then converted to p-values using the Normal CDF of $\hat{\zeta}_{w}^{A-B}$, letting $y^{(K)}_{t} = \mbox{\boldmath$\phi$}(t,K)$ st ${K}\in{\{A,B\}}$ and $t\in{V}$.
 
 As seen in Figure \ref{scattertextembeddings}, the top Republican word related to ``jobs'' is ``job creators'', while ``workers'' is the top Democratic term.
-\section{Conclusion}
-We have described Scattertext, a tool to make legible comprehensive visualizations of labeled corpora.  We have demonstrated how it can be used to examine importance scores of bag-of-words features and visualize word representations through a category-associated lens. 
-%\section*{Acknowledgments}
-%Jay Powell, Kyle Lo, Ray Little-Herricks, Will Headden, Chuck Little, and Nancy %Kessler helped proofread this work.
+\section{Conclusion and future work}
+Scattertext, a tool to make legible, comprehensive visualizations of class-associated term frequencies, was introduced.  Future work will involve rigorous human evaluation of the usefulness of the visualization strategies discussed.
+\section*{Acknowledgments}
+Jay Powell, Kyle Lo, Ray Little-Herrick, Will Headden, Chuck Little, Nancy Kessler and Kam Woods helped proofread this work.
 \vspace{-.5cm}
 \bibliography{kessler2017}
 \bibliographystyle{acl_natbib}
