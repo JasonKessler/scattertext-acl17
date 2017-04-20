@@ -106,12 +106,12 @@ While tidytext's labels do not overlap each other (in contrast to MCQ) they do o
 \end{figure}
 Figure \ref{nojitterfig} shows an excerpt of the same plot, but with no jitter.  Words appearing with the same frequency in both categories all become stacked atop each other, however, this provides more interior space for labeling. 
 
-Many text visualizations plot words in a 2D space according to their similarity in a high dimensional space.  For example, Cho et al. \citeyear{Cho2014} uses the Barnes-Hut-SNE to plot words in a 2D space s.t. those with similar representations are grouped close together. Class-association does not play a role in this line of research, and global position is essentially irrelevant. 
+As a side note, many text visualizations plot words in a 2D space according to their similarity in a high dimensional space.  For example, Cho et al. \citeyear{Cho2014} uses the Barnes-Hut-SNE to plot words in a 2D space s.t. those with similar representations are grouped close together. Class-association does not play a role in this line of research, and global position is essentially irrelevant. 
 
 The next section presents Scattertext and how its approach to word ordering solves the problems discussed above. 
 \section{Scattertext}
 \label{scattertext}
-Scattertext builds on tinytext and Rudder \shortcite{Rudder2014}.  It plots a set of unigrams and bigrams (we will refer to these as ``terms'') found in a corpus of documents assigned to one of two categories on a two-dimensional scatterplot.  
+Scattertext builds on tinytext and Rudder \shortcite{Rudder2014}.  It plots a set of unigrams and bigrams (referred to in this paper as ``terms'') found in a corpus of documents assigned to one of two categories on a two-dimensional scatterplot.  
 
 In the following notation, user-supplied parameters are in bold typeface. 
 
@@ -126,7 +126,7 @@ The construction of the set of terms included in the visualization $V$ is a two-
 \vspace{-.2cm}
 PMI(t_i) = \log \frac{Pr[t_i]}{\prod_{t_{ij}\in t_i{Pr[T_{ij}]}}}.
 \end{equation}
-The minimum $PMI$ accepted is \mbox{\boldmath$p$}. Now, we can define $V$ as 
+The minimum $PMI$ accepted is \mbox{\boldmath$p$}. Now, $V$ can be defined as 
 \begin{equation}
 \{t|\mbox{\boldmath$\phi$}(t,C)\geq\mbox{\boldmath$m$} \wedge (|t| \equiv 1 \vee PMI(t) > \mbox{\boldmath$p$})\}
 \end{equation}
@@ -179,7 +179,7 @@ Other point colors (and scorings) can be used.  For example, Figure \ref{scatter
   \label{scattertextembeddings}
 \end{figure}
 \label{embeddings}
-In 2012, how did Republicans and Democrats use language relating to ``jobs'', ``healthcare'', or ``military'' differently?   Figure \ref{scattertextembeddings} shows, in our running example, words similar to ``jobs'' that were characteristic of the political parties.  
+In 2012, how did Republicans and Democrats use language relating to ``jobs'', ``healthcare'', or ``military'' differently?   Figure \ref{scattertextembeddings} shows, in the running example, words similar to ``jobs'' that were characteristic of the political parties.  
 
 In this configuration of Scattertext, words are colored by their cosine similarity to a query phrase.  This is done using spaCy\footnote{\href{https://spacy.io/}{spacy.io}}-provided GloVe \cite{glove} word vectors (trained on the Common Crawl corpus). Mean vectors are used for phrases.
 
